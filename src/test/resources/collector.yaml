@@ -5,6 +5,7 @@ receivers:
   otlp:
     protocols:
       grpc:
+  signalfx:
 
 processors:
   batch:
@@ -22,7 +23,7 @@ service:
       processors: [ batch ]
       exporters: [ logging/logging_info ]
     metrics:
-      receivers: [ otlp ]
+      receivers: [ otlp, signalfx ]
       processors: [ batch ]
       exporters: [ logging/logging_info ]
     logs:
