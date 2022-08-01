@@ -17,7 +17,7 @@
         destination_port: 2375
         source: "!{{testbox_host}}"
         jump: DROP
-    - name: Install docker on ubuntu
+    - name: Install docker on debian
       import_tasks: install-docker-playbook.yml
     - name: Let docker listen on external port
       ansible.builtin.lineinfile:

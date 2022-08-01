@@ -5,6 +5,7 @@
 package io.opentelemetry.results;
 
 import io.opentelemetry.config.TestConfig;
+import io.opentelemetry.util.NamingConventions;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,6 +16,7 @@ import java.util.List;
 public class MainResultsPersister implements ResultsPersister {
 
   private final TestConfig config;
+  private final NamingConventions namingConventions = new NamingConventions();
 
   public MainResultsPersister(TestConfig config) {
     this.config = config;
@@ -22,7 +24,7 @@ public class MainResultsPersister implements ResultsPersister {
 
   @Override
   public void write(List<AppPerfResults> results) {
-    Path outputDir = Paths.get("results", config.getName());
+    Path outputDir = Paths.get(namingConventions.localResults(), config.getName());
     ensureCreated(outputDir);
     new ConsoleResultsPersister().write(results);
     new FileSummaryPersister(outputDir.resolve("summary.txt")).write(results);

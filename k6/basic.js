@@ -4,6 +4,12 @@ import names from "./names.js";
 
 const baseUri = `http://petclinic:9966/petclinic/api`;
 
+export const options = {
+    thresholds: {
+        http_req_failed: ['rate<0.20'] // Require < 20% http failure rate
+        // See note below about dupes/failures -- we do generate failures sometimes (intentionally)
+    },
+};
 export default function() {
     const specialtiesUrl = `${baseUri}/specialties`;
     const specialtiesResponse = http.get(specialtiesUrl);

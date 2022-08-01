@@ -10,14 +10,14 @@ fi
 
 echo "!! PROVISIONING externals with orca !!"
 orca --cloud aws create \
-    --platform x64_debian_9 \
+    --platform x64_debian_11 \
     --no-provision \
     --aws-instance-type m4.large \
     --prefix externals
 
 echo "!! PROVISIONING testbox with orca !!"
 orca --cloud aws create \
-    --platform x64_debian_9 \
+    --platform x64_debian_11 \
     --no-provision \
     --aws-instance-type m4.xlarge \
     --prefix testbox

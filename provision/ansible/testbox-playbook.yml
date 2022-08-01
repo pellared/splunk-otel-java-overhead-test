@@ -10,11 +10,12 @@
           - snapd
     - name: install java 11 jdk and screen and rsync
       apt:
+        update_cache: yes
         name:
           - screen
           - rsync
           - openjdk-11-jdk-headless
-    - name: Install docker on ubuntu
+    - name: Install docker on debian
       import_tasks: install-docker-playbook.yml
     - name: copy k6 directory
       ansible.posix.synchronize:
@@ -55,3 +56,11 @@
       become_user: splunk
       ansible.builtin.command:
         cmd: ./gradlew compileTestJava
+    - name: create results dir
+      ansible.builtin.file:
+        path: /home/splunk/results
+        owner: splunk
+        group: users
+        mode: '0775'
+        state: directory
+

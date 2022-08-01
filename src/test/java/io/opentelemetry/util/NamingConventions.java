@@ -1,12 +1,12 @@
 package io.opentelemetry.util;
 
 /**
- * An container to hold both the local and container naming conventions.
+ * A container to hold both the local and container naming conventions.
  */
 public class NamingConventions {
 
   public final NamingConvention container = new NamingConvention("/results");
-  public final NamingConvention local = new NamingConvention(".");
+  public final NamingConvention local = new NamingConvention("./results");
 
   /**
    * @return Root path for the local naming convention (where results are output)
