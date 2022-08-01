@@ -40,6 +40,12 @@ for f in $(find . -maxdepth 1 -type f -not -path '*/.*') ; do
    git add "$f"
 done
 
+if [[ -z "$(git status -s)" ]]
+then
+  echo "No changes detected; exiting."
+  exit 0
+fi
+
 echo "Setting up a new pull request for gh-pages changes"
 git status
 
