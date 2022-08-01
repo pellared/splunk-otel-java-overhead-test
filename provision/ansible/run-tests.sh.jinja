@@ -8,14 +8,18 @@ if [ "$#" != "0" ] ; then
   NUM_PASSES=$1
 fi
 
-echo Running $NUM_PASSES test passes...
+LOG_FILE=/tmp/test-log
+> $LOG_FILE
+
+echo "Running $NUM_PASSES test passes..." >> $LOG_FILE
 
 echo 1 > /tmp/tests-running
 for i in `seq 1 ${NUM_PASSES}` ; do
   now=$(date)
-  echo "${now} - Starting pass ${i}..."
+  echo "${now} - Starting pass ${i}..." >> $LOG_FILE
+
   echo "RUNNING ${i} of ${NUM_PASSES}" > /tmp/passnum.txt
-  EXTERNALS_HOST={{externals_host}} ./gradlew --no-daemon cleanTest test
+  EXTERNALS_HOST={{externals_host}} ./gradlew --no-daemon cleanTest test >> $LOG_FILE
   echo "FINISHED ${i} of ${NUM_PASSES}" > /tmp/passnum.txt
 done
 echo 0 > /tmp/tests-running

@@ -7,12 +7,17 @@ source ${MYDIR}/env.sh
 
 echo "Waiting for tests to complete...zzz..."
 
-function poll_wait(){
+function poll_wait() {
   sleep 180
 }
 
+function ssh_testbox() {
+  local command=$1
+  ssh -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" -o "LogLevel=ERROR" -i ~/.orca/id_rsa  splunk@${TESTBOX_HOST} "$command"
+}
+
 while [ 1 == 1 ] ; do
-  PASS=$(ssh -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" -o "LogLevel=ERROR" -i ~/.orca/id_rsa  splunk@${TESTBOX_HOST} "cat /tmp/passnum.txt")
+  PASS=$(ssh_testbox "cat /tmp/passnum.txt")
   TOTAL=$(echo $PASS | cut -d ' ' -f 4)
   CUR=$(echo $PASS | cut -d ' ' -f 2)
   echo "Run $CUR of $TOTAL ... zzzzz"
@@ -25,8 +30,8 @@ sleep 10
 echo "We are on the final run."
 
 while [ 1 == 1 ] ; do
-  ssh -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" -o "LogLevel=ERROR" -i ~/.orca/id_rsa  splunk@${TESTBOX_HOST} "cat /tmp/progress.txt"
-  RUNNING=$(ssh -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" -o "LogLevel=ERROR" -i ~/.orca/id_rsa  splunk@${TESTBOX_HOST} "cat /tmp/tests-running")
+  ssh_testbox "cat /tmp/progress.txt"
+  RUNNING=$(ssh_testbox "cat /tmp/tests-running")
   if [ "$RUNNING" == "0" ] ; then
     break
   fi
@@ -34,3 +39,9 @@ while [ 1 == 1 ] ; do
 done
 
 echo "Test pass is complete."
+
+echo "Printing out test logs:"
+ssh_testbox "cat /tmp/test-log"
+
+echo "Remote results:"
+ssh_testbox "find results"
