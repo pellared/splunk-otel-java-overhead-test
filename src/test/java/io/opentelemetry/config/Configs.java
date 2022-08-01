@@ -24,8 +24,8 @@ public enum Configs {
       .name("release_30vu_8500iter")
       .description("multiple agent configurations compared")
       .withAgents(Agents.NONE, Agents.SPLUNK_OTEL, Agents.SPLUNK_1_13, Agents.SPLUNK_1_14, Agents.OTEL)
-      .totalIterations(500)
-      .warmupSeconds(5)
+      .totalIterations(8500)
+      .warmupSeconds(60)
       .maxRequestRate(900)
       .concurrentConnections(30)
       .build());

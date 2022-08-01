@@ -39,7 +39,7 @@ public final class Agents {
       .name("otel")
       .description("OpenTelemetry Instrumentation for Java")
       .version("1.16.0")
-      .url(splunkAgentUrl("1.16.0"))
+      .url(otelAgentUrl("1.16.0"))
       .build();
 
   public final static Agent SPLUNK_PROFILER = Agent.builder()
