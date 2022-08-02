@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+
 plugins {
   id("java")
 }
@@ -22,5 +24,9 @@ dependencies {
 tasks {
   test {
     useJUnitPlatform()
+
+    testLogging {
+      exceptionFormat = TestExceptionFormat.FULL
+    }
   }
 }
