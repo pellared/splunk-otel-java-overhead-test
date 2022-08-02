@@ -15,6 +15,8 @@ import io.opentelemetry.results.MainResultsPersister;
 import io.opentelemetry.results.ResultsCollector;
 import io.opentelemetry.util.NamingConventions;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.startupcheck.OneShotStartupCheckStrategy;
@@ -35,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 // Overhead tests but with remote collector and postgres components.
 public class OverheadWithExternalsTests {
+  private static final Logger logger = LoggerFactory.getLogger(OverheadWithExternalsTests.class);
 
   private static final Network NETWORK = Network.newNetwork();
   public static final String ENV_EXTERNALS_HOST = "EXTERNALS_HOST";
@@ -110,7 +113,12 @@ public class OverheadWithExternalsTests {
 
     GenericContainer<?> petclinic = new PetClinicRestContainer(NETWORK, agent, namingConventions, getPostgresHost(), getCollectorHost()).build();
     long start = System.currentTimeMillis();
-    petclinic.start();
+    try {
+      logger.info("Starting petclinic container");
+      petclinic.start();
+    } finally {
+      logger.info("Petclinic container has started or failed to start.");
+    }
     writeStartupTimeFile(agent, start);
 
     if (config.getWarmupSeconds() > 0) {
@@ -153,9 +161,9 @@ public class OverheadWithExternalsTests {
   }
 
   private void doWarmupPhase(TestConfig testConfig, GenericContainer<?> petclinic) throws IOException, InterruptedException {
-    System.out.println("Performing startup warming phase for " + testConfig.getWarmupSeconds() + " seconds...");
+    logger.info("Performing startup warming phase for " + testConfig.getWarmupSeconds() + " seconds...");
 
-    System.out.println("Starting disposable JFR warmup recording...");
+    logger.info("Starting disposable JFR warmup recording...");
     String[] startCommand = {"jcmd", "1", "JFR.start", "settings=/app/overhead.jfc", "dumponexit=true", "name=warmup", "filename=warmup.jfr"};
     petclinic.execInContainer(startCommand);
 
@@ -172,11 +180,11 @@ public class OverheadWithExternalsTests {
       k6.start();
     }
 
-    System.out.println("Stopping disposable JFR warmup recording...");
+    logger.info("Stopping disposable JFR warmup recording...");
     String[] stopCommand = {"jcmd", "1", "JFR.stop", "name=warmup"};
     petclinic.execInContainer(stopCommand);
 
-    System.out.println("Warmup complete.");
+    logger.info("Warmup complete.");
   }
 
   private void writeStartupTimeFile(Agent agent, long start) throws IOException {

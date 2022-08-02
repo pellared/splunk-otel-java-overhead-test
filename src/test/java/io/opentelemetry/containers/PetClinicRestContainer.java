@@ -69,7 +69,7 @@ public class PetClinicRestContainer {
                     MountableFile.forClasspathResource("overhead.jfc"), "/app/overhead.jfc")
             .waitingFor(Wait.forHttp("/petclinic/actuator/health")
                     .forPort(PETCLINIC_PORT)
-                    .withStartupTimeout(Duration.ofMinutes(3)))
+                    .withStartupTimeout(Duration.ofMinutes(5)))
             .withEnv("spring_profiles_active", "postgresql,spring-data-jpa")
             .withEnv("spring_datasource_url", "jdbc:postgresql://" + postgresHost + ":5432/" + PostgresContainer.DATABASE_NAME)
             .withEnv("spring_datasource_username", PostgresContainer.USERNAME)
