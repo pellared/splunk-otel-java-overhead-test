@@ -55,7 +55,6 @@ public class OverheadTests {
     collector.close();
   }
 
-  @Disabled
   @Test
   @Disabled
   void runOverheadTest() {
