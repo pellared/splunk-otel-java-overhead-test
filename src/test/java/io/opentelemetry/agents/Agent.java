@@ -1,11 +1,9 @@
 package io.opentelemetry.agents;
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
-import java.util.ArrayList;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public final class Agent {
 
@@ -16,14 +14,14 @@ public final class Agent {
   private final String name;
   private final String description;
   private final String version;
-  private final URL url;
+  private final AgentJarResolver jarResolver;
   private final List<String> additionalJvmArgs;
 
   Agent(Builder builder) {
     this.name = builder.name;
     this.description = builder.description;
     this.version = builder.version;
-    this.url = builder.url;
+    this.jarResolver = builder.jarResolver;
     this.additionalJvmArgs = builder.additionalJvmArgs;
   }
 
@@ -39,16 +37,12 @@ public final class Agent {
     return version;
   }
 
-  public boolean hasUrl() {
-    return url != null;
-  }
-
-  public URL getUrl() {
-    return url;
-  }
-
   public List<String> getAdditionalJvmArgs() {
     return Collections.unmodifiableList(additionalJvmArgs);
+  }
+
+  public Optional<Path> getJarPath() {
+    return jarResolver.resolve();
   }
 
   public static final class Builder {
@@ -56,7 +50,7 @@ public final class Agent {
     private String name;
     private String description;
     private String version;
-    private URL url;
+    private AgentJarResolver jarResolver = AgentJarResolver.none();
     private List<String> additionalJvmArgs = Collections.emptyList();
 
     public Builder name(String name) {
@@ -75,13 +69,7 @@ public final class Agent {
     }
 
     public Builder url(String url) {
-      if (url != null) {
-        try {
-          this.url = URI.create(url).toURL();
-        } catch (MalformedURLException e) {
-          throw new RuntimeException("Error parsing url", e);
-        }
-      }
+      this.jarResolver = AgentJarResolver.url(url);
       return this;
     }
 

@@ -5,7 +5,6 @@
 package io.opentelemetry.containers;
 
 import io.opentelemetry.agents.Agent;
-import io.opentelemetry.agents.AgentResolver;
 import io.opentelemetry.util.NamingConventions;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -28,7 +27,6 @@ public class PetClinicRestContainer {
 
   private static final Logger logger = LoggerFactory.getLogger(PetClinicRestContainer.class);
   private static final int PETCLINIC_PORT = 9966;
-  private final AgentResolver agentResolver = new AgentResolver();
 
   private final Network network;
   private final Startable collector;
@@ -57,7 +55,7 @@ public class PetClinicRestContainer {
 
   public GenericContainer<?> build() throws Exception {
 
-    Optional<Path> agentJar = agentResolver.resolve(this.agent);
+    Optional<Path> agentJar = agent.getJarPath();
 
     GenericContainer<?> container = new GenericContainer<>(
             DockerImageName.parse("ghcr.io/open-telemetry/opentelemetry-java-instrumentation/petclinic-rest-base:20220711201901"))
@@ -77,7 +75,7 @@ public class PetClinicRestContainer {
             .withEnv("spring_jpa_hibernate_ddl-auto", "none")
             .withCommand(buildCommandline(agentJar));
 
-    if(collector != null){
+    if (collector != null) {
       container = container.dependsOn(collector);
     }
 
