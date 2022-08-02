@@ -18,6 +18,7 @@ import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -66,7 +67,9 @@ public class PetClinicRestContainer {
             .withFileSystemBind(namingConventions.localResults(), namingConventions.containerResults())
             .withCopyFileToContainer(
                     MountableFile.forClasspathResource("overhead.jfc"), "/app/overhead.jfc")
-            .waitingFor(Wait.forHttp("/petclinic/actuator/health").forPort(PETCLINIC_PORT))
+            .waitingFor(Wait.forHttp("/petclinic/actuator/health")
+                    .forPort(PETCLINIC_PORT)
+                    .withStartupTimeout(Duration.ofMinutes(3)))
             .withEnv("spring_profiles_active", "postgresql,spring-data-jpa")
             .withEnv("spring_datasource_url", "jdbc:postgresql://" + postgresHost + ":5432/" + PostgresContainer.DATABASE_NAME)
             .withEnv("spring_datasource_username", PostgresContainer.USERNAME)
