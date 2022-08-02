@@ -23,14 +23,14 @@ public final class Agents {
 
   public final static Agent SPLUNK_1_13 = Agent.builder()
       .name("splunk-1.13.1")
-      .description("Splunk OpenTelemetry Java agent")
+      .description("Splunk OpenTelemetry Java agent (1.13.1)")
       .version("1.13.1")
       .url(splunkAgentUrl("1.13.1"))
       .build();
 
   public final static Agent SPLUNK_1_14 = Agent.builder()
       .name("splunk-1.14.0")
-      .description("Splunk OpenTelemetry Java agent")
+      .description("Splunk OpenTelemetry Java agent (1.14.0)")
       .version("1.14.0")
       .url(splunkAgentUrl("1.14.0"))
       .build();

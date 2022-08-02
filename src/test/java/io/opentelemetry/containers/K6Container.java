@@ -47,7 +47,7 @@ public class K6Container {
         .withCommand(
             "run",
             "-u", String.valueOf(config.getConcurrentConnections()),
-            "-i", String.valueOf(config.getTotalIterations()),
+            "-i", String.valueOf(config.getK6Iterations()),
             "--rps", String.valueOf(config.getMaxRequestRate()),
             "--summary-export", k6OutputFile.toString(),
             "/app/basic.js"

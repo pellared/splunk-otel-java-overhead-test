@@ -16,25 +16,28 @@ import java.util.List;
  */
 public class TestConfig {
 
+  private final static int DEFAULT_NUMBER_OF_PASSES = 1;
   private final static int DEFAULT_MAX_REQUEST_RATE = 0;  // none
   private final static int DEFAULT_CONCURRENT_CONNECTIONS = 5;
-  private final static int DEFAULT_TOTAL_ITERATIONS = 500;
+  private final static int DEFAULT_K6_ITERATIONS = 500;
 
   private final String name;
   private final String description;
   private final List<Agent> agents;
+  private final int numberOfPasses;
   private final int maxRequestRate;
   private final int concurrentConnections;
-  private final int totalIterations;
+  private final int k6Iterations;
   private final int warmupSeconds;
 
   public TestConfig(Builder builder) {
     this.name = builder.name;
     this.description = builder.description;
     this.agents = Collections.unmodifiableList(builder.agents);
+    this.numberOfPasses = builder.numberOfPasses;
     this.maxRequestRate = builder.maxRequestRate;
     this.concurrentConnections = builder.concurrentConnections;
-    this.totalIterations = builder.totalIterations;
+    this.k6Iterations = builder.k6Iterations;
     this.warmupSeconds = builder.warmupSeconds;
   }
 
@@ -47,7 +50,15 @@ public class TestConfig {
   }
 
   public List<Agent> getAgents() {
-    return Collections.unmodifiableList(agents);
+    return agents;
+  }
+
+  /**
+   * Represents the number of times this {@link TestConfig} will be executed (meaning: executing the k6 script with
+   * configured settings for all agents).
+   */
+  public int getNumberOfPasses() {
+    return numberOfPasses;
   }
 
   public int getMaxRequestRate() {
@@ -58,8 +69,13 @@ public class TestConfig {
     return concurrentConnections;
   }
 
-  public int getTotalIterations() {
-    return totalIterations;
+  /**
+   * The number of times the k6 script will be run against the tested app.
+   * <p>
+   * Also see <a href="https://k6.io/docs/using-k6/k6-options/reference/#iterations">k6 docs</a>.
+   */
+  public int getK6Iterations() {
+    return k6Iterations;
   }
 
   public int getWarmupSeconds() {
@@ -74,9 +90,10 @@ public class TestConfig {
     private String name;
     private String description;
     private List<Agent> agents = new ArrayList<>();
+    private int numberOfPasses = DEFAULT_NUMBER_OF_PASSES;
     private int maxRequestRate = DEFAULT_MAX_REQUEST_RATE;
     private int concurrentConnections = DEFAULT_CONCURRENT_CONNECTIONS;
-    private int totalIterations = DEFAULT_TOTAL_ITERATIONS;
+    private int k6Iterations = DEFAULT_K6_ITERATIONS;
     public int warmupSeconds = 0;
 
     Builder name(String name) {
@@ -89,8 +106,13 @@ public class TestConfig {
       return this;
     }
 
-    Builder withAgents(Agent ...agents) {
+    Builder withAgents(Agent... agents) {
       this.agents.addAll(Arrays.asList(agents));
+      return this;
+    }
+
+    Builder numberOfPasses(int numberOfPasses) {
+      this.numberOfPasses = numberOfPasses;
       return this;
     }
 
@@ -104,17 +126,17 @@ public class TestConfig {
       return this;
     }
 
-    Builder totalIterations(int totalIterations) {
-      this.totalIterations = totalIterations;
+    Builder k6Iterations(int totalIterations) {
+      this.k6Iterations = totalIterations;
       return this;
     }
 
-    Builder warmupSeconds(int warmupSeconds){
+    Builder warmupSeconds(int warmupSeconds) {
       this.warmupSeconds = warmupSeconds;
       return this;
     }
 
-    TestConfig build(){
+    TestConfig build() {
       return new TestConfig(this);
     }
   }

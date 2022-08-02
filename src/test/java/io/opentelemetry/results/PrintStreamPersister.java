@@ -26,7 +26,8 @@ class PrintStreamPersister implements ResultsPersister {
     out.println("----------------------------------------------------------");
     out.println(" Run at " + new Date());
     out.printf(" %s : %s\n", config.getName(), config.getDescription());
-    out.printf(" %d users, %d iterations\n", config.getConcurrentConnections(), config.getTotalIterations());
+    out.printf("number of passes: %d", config.getNumberOfPasses());
+    out.printf("k6 settings: %d users, %d iterations\n", config.getConcurrentConnections(), config.getK6Iterations());
     out.println("----------------------------------------------------------");
 
     display(results, "Agent", appPerfResults -> appPerfResults.agent.getName());

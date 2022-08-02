@@ -14,8 +14,7 @@ import io.opentelemetry.results.AppPerfResults;
 import io.opentelemetry.results.MainResultsPersister;
 import io.opentelemetry.results.ResultsCollector;
 import io.opentelemetry.util.NamingConventions;
-import org.junit.jupiter.api.DynamicTest;
-import org.junit.jupiter.api.TestFactory;
+import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.startupcheck.OneShotStartupCheckStrategy;
@@ -25,66 +24,65 @@ import org.testcontainers.utility.MountableFile;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 // Overhead tests but with remote collector and postgres components.
 public class OverheadWithExternalsTests {
 
   private static final Network NETWORK = Network.newNetwork();
   public static final String ENV_EXTERNALS_HOST = "EXTERNALS_HOST";
-  private final NamingConventions namingConventions = new NamingConventions();
-  private final Map<String,Long> runDurations = new HashMap<>();
-  private RemotePostgresContainer postgres;
 
-  @TestFactory
-  Stream<DynamicTest> runAllTestConfigurations() {
-    return Configs.all().map(config ->
-        dynamicTest(config.getName(), () -> runTestConfig(config))
-    );
+  private final NamingConventions namingConventions = new NamingConventions();
+  private final Map<String, Long> runDurations = new HashMap<>();
+
+  @Test
+  void runOverheadTest() {
+    TestConfig config = Configs.RELEASE;
+
+    MainResultsPersister resultsPersister = new MainResultsPersister(config, namingConventions);
+    List<AppPerfResults> allResults = new ArrayList<>();
+
+    for (int currentPass = 0; currentPass < config.getNumberOfPasses(); ++currentPass) {
+      List<AppPerfResults> singlePassResults = runSinglePass(config, currentPass);
+      resultsPersister.writePass(singlePassResults);
+      allResults.addAll(singlePassResults);
+    }
+
+    resultsPersister.writeAll(allResults);
   }
 
-  void runTestConfig(TestConfig config) {
+  private List<AppPerfResults> runSinglePass(TestConfig config, int currentPass) {
     runDurations.clear();
     config.getAgents().forEach(agent -> {
       try {
-        logProgress(config, agent);
+        logProgress(currentPass, config, agent);
         runAppOnce(config, agent);
       } catch (Exception e) {
         fail("Unhandled exception in " + config.getName(), e);
       }
     });
-    List<AppPerfResults> results = new ResultsCollector(namingConventions.local, runDurations).collect(config);
-    new MainResultsPersister(config).write(results);
+    return new ResultsCollector(namingConventions.local, runDurations).collect(config);
   }
 
-  private void logProgress(TestConfig config, Agent agent) {
-    List<TestConfig> configs = Configs.all().collect(Collectors.toList());
-    int totalConfigs = configs.size();
-    int thisConfigNum = configs.indexOf(config);
-    int agents = config.getAgents().size();
-    int thisAgentNum = config.getAgents().indexOf(agent);
+  private void logProgress(int currentPass, TestConfig config, Agent agent) {
+    int numberOfAgents = config.getAgents().size();
+    int currentAgent = config.getAgents().indexOf(agent);
 
-    int totalAgentRunsAcrossAllConfigs = Configs.all().reduce(0, (integer, testConfig) -> testConfig.getAgents().size(), Integer::sum);
-    int currentPosition = 0;
-    for (TestConfig testConfig : configs) {
-      List<Agent> thisConfigAgents = testConfig.getAgents();
-      for (Agent thisConfigAgent : thisConfigAgents) {
-        currentPosition++;
-        if((testConfig == config) && (thisConfigAgent == agent)){
-          break;
-        }
-      }
-    }
-    String output = String.format("Config %d/%d Agent %d/%d - Total %d/%d\n", thisConfigNum + 1, totalConfigs, thisAgentNum + 1, agents, currentPosition, totalAgentRunsAcrossAllConfigs);
+    int currentPassTotal = currentPass * numberOfAgents + currentAgent;
+    int totalNumberOfPasses = numberOfAgents * config.getNumberOfPasses();
+
+    String output = String.format("Pass %d/%d Agent %d/%d - Total %d/%d\n",
+        currentPass + 1, config.getNumberOfPasses(),
+        currentAgent + 1, numberOfAgents,
+        currentPassTotal + 1, totalNumberOfPasses);
+
     System.out.printf(output);
     writeProgress(output);
   }
@@ -97,13 +95,12 @@ public class OverheadWithExternalsTests {
     }
   }
 
-  void runAppOnce(TestConfig config, Agent agent) throws Exception {
-    postgres = RemotePostgresContainer.build(getPostgresHost());
+  private void runAppOnce(TestConfig config, Agent agent) throws Exception {
+    RemotePostgresContainer postgres = RemotePostgresContainer.build(getPostgresHost());
     postgres.start();
     try {
       runApp(config, agent);
-    }
-    finally {
+    } finally {
       postgres.stop();
     }
   }
@@ -116,7 +113,7 @@ public class OverheadWithExternalsTests {
     petclinic.start();
     writeStartupTimeFile(agent, start);
 
-    if(config.getWarmupSeconds() > 0){
+    if (config.getWarmupSeconds() > 0) {
       doWarmupPhase(config, petclinic);
     }
 
@@ -164,7 +161,7 @@ public class OverheadWithExternalsTests {
 
     long deadline =
         System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(testConfig.getWarmupSeconds());
-    while(System.currentTimeMillis() < deadline){
+    while (System.currentTimeMillis() < deadline) {
       GenericContainer<?> k6 = new GenericContainer<>(
           DockerImageName.parse("loadimpact/k6"))
           .withNetwork(NETWORK)
