@@ -9,6 +9,9 @@ repositories {
 }
 
 dependencies {
+  testImplementation("org.slf4j:slf4j-api:1.7.36")
+  testImplementation("org.slf4j:slf4j-simple:1.7.36")
+
   testImplementation("org.testcontainers:testcontainers:1.15.3")
   testImplementation("org.testcontainers:postgresql:1.15.3")
   testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.2")

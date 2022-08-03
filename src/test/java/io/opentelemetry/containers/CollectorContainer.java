@@ -15,7 +15,8 @@ import org.testcontainers.utility.MountableFile;
 
 public class CollectorContainer {
 
-  static final int COLLECTOR_PORT = 4317;
+  static final int OTLP_PORT = 4317;
+  static final int SIGNALFX_METRICS_PORT = 9943;
   static final int COLLECTOR_HEALTH_CHECK_PORT = 13133;
 
   private static final Logger logger = LoggerFactory.getLogger(CollectorContainer.class);
@@ -23,11 +24,11 @@ public class CollectorContainer {
   public static GenericContainer<?> build(Network network) {
 
     return new GenericContainer<>(
-        DockerImageName.parse("otel/opentelemetry-collector-contrib:latest"))
+        DockerImageName.parse("otel/opentelemetry-collector-contrib:0.55.0"))
         .withNetwork(network)
         .withNetworkAliases("collector")
         .withLogConsumer(new Slf4jLogConsumer(logger))
-        .withExposedPorts(COLLECTOR_PORT, COLLECTOR_HEALTH_CHECK_PORT)
+        .withExposedPorts(OTLP_PORT, SIGNALFX_METRICS_PORT, COLLECTOR_HEALTH_CHECK_PORT)
         .waitingFor(Wait.forHttp("/health").forPort(COLLECTOR_HEALTH_CHECK_PORT))
         .withCopyFileToContainer(
             MountableFile.forClasspathResource("collector.yaml"), "/etc/otel.yaml")

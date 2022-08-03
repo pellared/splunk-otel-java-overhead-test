@@ -1,6 +1,10 @@
-FROM otel/opentelemetry-collector-contrib:latest
+FROM otel/opentelemetry-collector-contrib:0.55.0
 
 COPY collector.yaml /etc/otel/config.yaml
 
+# OTLP receiver
 EXPOSE 4317
+# signalfx metrics receiver
+EXPOSE 9943
+# health check
 EXPOSE 13133
