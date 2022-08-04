@@ -30,7 +30,7 @@ tasks {
 
     testLogging {
       exceptionFormat = TestExceptionFormat.FULL
-      showStandardStreams = true
+//      showStandardStreams = true
     }
   }
 }
