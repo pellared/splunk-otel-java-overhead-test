@@ -14,6 +14,7 @@ import io.opentelemetry.results.AppPerfResults;
 import io.opentelemetry.results.MainResultsPersister;
 import io.opentelemetry.results.ResultsCollector;
 import io.opentelemetry.util.NamingConventions;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,11 @@ public class OverheadWithExternalsTests {
 
   private final NamingConventions namingConventions = new NamingConventions();
   private final Map<String, Long> runDurations = new HashMap<>();
+
+  @AfterAll
+  static void removeNetwork() {
+    NETWORK.close();
+  }
 
   @Test
   void runOverheadTest() {
@@ -111,34 +117,40 @@ public class OverheadWithExternalsTests {
   private void runApp(TestConfig config, Agent agent) throws Exception {
     verifyExternals();
 
-    GenericContainer<?> petclinic = new PetClinicRestContainer(NETWORK, agent, namingConventions, getPostgresHost(), getCollectorHost()).build();
-    long start = System.currentTimeMillis();
-    try {
-      logger.info("Starting petclinic container");
-      petclinic.start();
-    } finally {
-      logger.info("Petclinic container has started or failed to start.");
-    }
-    writeStartupTimeFile(agent, start);
+    try (GenericContainer<?> petclinic =
+             new PetClinicRestContainer(NETWORK, agent, namingConventions, getPostgresHost(), getCollectorHost())
+                 .build()) {
+      long start = System.currentTimeMillis();
 
-    if (config.getWarmupSeconds() > 0) {
-      doWarmupPhase(config, petclinic);
-    }
+      try {
+        logger.info("Starting petclinic container");
+        petclinic.start();
+      } finally {
+        logger.info("Petclinic container has started or failed to start.");
+      }
 
-    long testStart = System.currentTimeMillis();
-    startRecording(agent, petclinic);
+      writeStartupTimeFile(agent, start);
 
-    GenericContainer<?> k6 = new K6Container(NETWORK, agent, config, namingConventions).build();
-    k6.start();
+      if (config.getWarmupSeconds() > 0) {
+        doWarmupPhase(config, petclinic);
+      }
 
-    long runDuration = System.currentTimeMillis() - testStart;
-    runDurations.put(agent.getName(), runDuration);
+      long testStart = System.currentTimeMillis();
+      startRecording(agent, petclinic);
 
-    // This is required to get a graceful exit of the VM before testcontainers kills it forcibly.
-    // Without it, our jfr file will be empty.
-    petclinic.execInContainer("kill", "1");
-    while (petclinic.isRunning()) {
-      TimeUnit.MILLISECONDS.sleep(500);
+      try (GenericContainer<?> k6 = new K6Container(NETWORK, agent, config, namingConventions).build()) {
+        k6.start();
+      }
+
+      long runDuration = System.currentTimeMillis() - testStart;
+      runDurations.put(agent.getName(), runDuration);
+
+      // This is required to get a graceful exit of the VM before testcontainers kills it forcibly.
+      // Without it, our jfr file will be empty.
+      petclinic.execInContainer("kill", "1");
+      while (petclinic.isRunning()) {
+        TimeUnit.MILLISECONDS.sleep(500);
+      }
     }
   }
 
@@ -170,14 +182,15 @@ public class OverheadWithExternalsTests {
     long deadline =
         System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(testConfig.getWarmupSeconds());
     while (System.currentTimeMillis() < deadline) {
-      GenericContainer<?> k6 = new GenericContainer<>(
+      try (GenericContainer<?> k6 = new GenericContainer<>(
           DockerImageName.parse("loadimpact/k6"))
           .withNetwork(NETWORK)
           .withCopyFileToContainer(
               MountableFile.forHostPath("./k6"), "/app")
           .withCommand("run", "-u", "5", "-i", "200", "/app/basic.js")
-          .withStartupCheckStrategy(new OneShotStartupCheckStrategy());
-      k6.start();
+          .withStartupCheckStrategy(new OneShotStartupCheckStrategy())) {
+        k6.start();
+      }
     }
 
     logger.info("Stopping disposable JFR warmup recording...");
