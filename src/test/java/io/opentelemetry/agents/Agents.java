@@ -9,11 +9,6 @@ public final class Agents {
       .description("No Instrumentation")
       .build();
 
-  public final static Agent LATEST_UPSTREAM_SNAPSHOT = Agent.builder()
-      .name("snapshot")
-      .description("Latest available snapshot version from main")
-      .build();
-
   public final static Agent SPLUNK_OTEL = Agent.builder()
       .name("splunk-otel")
       .description("Splunk OpenTelemetry Java agent")
@@ -21,18 +16,12 @@ public final class Agents {
       .url(splunkAgentUrl(LATEST_VERSION))
       .build();
 
-  public final static Agent SPLUNK_1_13 = Agent.builder()
-      .name("splunk-1.13.1")
-      .description("Splunk OpenTelemetry Java agent (1.13.1)")
-      .version("1.13.1")
-      .url(splunkAgentUrl("1.13.1"))
-      .build();
-
-  public final static Agent SPLUNK_1_14 = Agent.builder()
-      .name("splunk-1.14.0")
-      .description("Splunk OpenTelemetry Java agent (1.14.0)")
-      .version("1.14.0")
-      .url(splunkAgentUrl("1.14.0"))
+  public final static Agent SPLUNK_LOGGING = Agent.builder()
+      .name("splunk-logging")
+      .description("Splunk OpenTelemetry Java agent w/ logging exporter")
+      .version(LATEST_VERSION)
+      .url(splunkAgentUrl(LATEST_VERSION))
+      .additionalJvmArgs("-Dotel.traces.exporter=logging")
       .build();
 
   public final static Agent OTEL = Agent.builder()

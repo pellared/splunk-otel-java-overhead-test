@@ -14,7 +14,7 @@ public final class Configs {
   public static final TestConfig RELEASE = TestConfig.builder()
       .name("release_30vu_8500iter")
       .description("multiple agent configurations compared")
-      .withAgents(Agents.NONE, Agents.SPLUNK_OTEL, Agents.SPLUNK_1_13, Agents.SPLUNK_1_14, Agents.OTEL)
+      .withAgents(Agents.NONE, Agents.SPLUNK_OTEL, Agents.SPLUNK_LOGGING)
       .numberOfPasses(10)
       .maxRequestRate(900)
       .concurrentConnections(30)

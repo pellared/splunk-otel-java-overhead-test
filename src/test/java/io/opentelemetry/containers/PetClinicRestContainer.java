@@ -7,11 +7,8 @@ package io.opentelemetry.containers;
 import io.opentelemetry.agents.Agent;
 import io.opentelemetry.util.NamingConventions;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.lifecycle.Startable;
 import org.testcontainers.utility.DockerImageName;
@@ -26,7 +23,6 @@ import java.util.Optional;
 
 public class PetClinicRestContainer {
 
-  private static final Logger logger = LoggerFactory.getLogger(PetClinicRestContainer.class);
   private static final int PETCLINIC_PORT = 9966;
 
   private final Network network;
@@ -59,24 +55,23 @@ public class PetClinicRestContainer {
     Optional<Path> agentJar = agent.getJarPath();
 
     GenericContainer<?> container = new GenericContainer<>(
-            DockerImageName.parse("ghcr.io/open-telemetry/opentelemetry-java-instrumentation/petclinic-rest-base:20220711201901"))
-            .withNetwork(network)
-            .withNetworkAliases("petclinic")
-            .withLogConsumer(new Slf4jLogConsumer(logger))
-            .withExposedPorts(PETCLINIC_PORT)
-            .withFileSystemBind(namingConventions.localResults(), namingConventions.containerResults())
-            .withCopyFileToContainer(
-                    MountableFile.forClasspathResource("overhead.jfc"), "/app/overhead.jfc")
-            .waitingFor(Wait.forHttp("/petclinic/actuator/health")
-                    .forPort(PETCLINIC_PORT)
-                    .withStartupTimeout(Duration.ofMinutes(5)))
-            .withEnv("spring_profiles_active", "postgresql,spring-data-jpa")
-            .withEnv("spring_datasource_url", "jdbc:postgresql://" + postgresHost + ":5432/" + PostgresContainer.DATABASE_NAME)
-            .withEnv("spring_datasource_username", PostgresContainer.USERNAME)
-            .withEnv("spring_datasource_password", PostgresContainer.PASSWORD)
-            .withEnv("spring.datasource.hikari.maximum-pool-size", "30")
-            .withEnv("spring_jpa_hibernate_ddl-auto", "none")
-            .withCommand(buildCommandline(agentJar));
+        DockerImageName.parse("ghcr.io/open-telemetry/opentelemetry-java-instrumentation/petclinic-rest-base:20220711201901"))
+        .withNetwork(network)
+        .withNetworkAliases("petclinic")
+        .withExposedPorts(PETCLINIC_PORT)
+        .withFileSystemBind(namingConventions.localResults(), namingConventions.containerResults())
+        .withCopyFileToContainer(
+            MountableFile.forClasspathResource("overhead.jfc"), "/app/overhead.jfc")
+        .waitingFor(Wait.forHttp("/petclinic/actuator/health")
+            .forPort(PETCLINIC_PORT)
+            .withStartupTimeout(Duration.ofMinutes(5)))
+        .withEnv("spring_profiles_active", "postgresql,spring-data-jpa")
+        .withEnv("spring_datasource_url", "jdbc:postgresql://" + postgresHost + ":5432/" + PostgresContainer.DATABASE_NAME)
+        .withEnv("spring_datasource_username", PostgresContainer.USERNAME)
+        .withEnv("spring_datasource_password", PostgresContainer.PASSWORD)
+        .withEnv("spring.datasource.hikari.maximum-pool-size", "30")
+        .withEnv("spring_jpa_hibernate_ddl-auto", "none")
+        .withCommand(buildCommandline(agentJar));
 
     if (collector != null) {
       container = container.dependsOn(collector);
@@ -94,9 +89,9 @@ public class PetClinicRestContainer {
   @NotNull
   private String[] buildCommandline(Optional<Path> agentJar) {
     String collectorUrl = collector == null ?
-            "http://" + collectorHost + ":4317"
-            :
-            "http://collector:4317";
+        "http://" + collectorHost + ":4317"
+        :
+        "http://collector:4317";
     List<String> result = new ArrayList<>(Arrays.asList(
         "java",
         "-Xmx2g",
@@ -112,6 +107,6 @@ public class PetClinicRestContainer {
 
     result.add("-jar");
     result.add("/app/spring-petclinic-rest.jar");
-    return result.toArray(new String[] {});
+    return result.toArray(new String[]{});
   }
 }
