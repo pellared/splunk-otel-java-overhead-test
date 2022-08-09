@@ -1,0 +1,37 @@
+{
+  "name": "release_30vu_8500iter",
+  "description": "multiple agent configurations compared",
+  "agents": [
+    {
+      "name": "none",
+      "description": "No Instrumentation",
+      "jarResolver": {},
+      "additionalJvmArgs": []
+    },
+    {
+      "name": "splunk-otel",
+      "description": "Splunk OpenTelemetry Java agent",
+      "version": "1.14.1",
+      "jarResolver": {
+        "url": "https://github.com/signalfx/splunk-otel-java/releases/download/v1.14.1/splunk-otel-javaagent.jar"
+      },
+      "additionalJvmArgs": []
+    },
+    {
+      "name": "splunk-logging",
+      "description": "Splunk OpenTelemetry Java agent w/ logging exporter",
+      "version": "1.14.1",
+      "jarResolver": {
+        "url": "https://github.com/signalfx/splunk-otel-java/releases/download/v1.14.1/splunk-otel-javaagent.jar"
+      },
+      "additionalJvmArgs": [
+        "-Dotel.traces.exporter\u003dlogging"
+      ]
+    }
+  ],
+  "numberOfPasses": 10,
+  "maxRequestRate": 900,
+  "concurrentConnections": 30,
+  "k6Iterations": 8500,
+  "warmupSeconds": 60
+}
